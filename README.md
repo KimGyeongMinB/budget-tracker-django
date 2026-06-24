@@ -2,6 +2,9 @@
 
 > 머신러닝 카테고리 추천과 지출 예측을 탑재한 개인 예산 관리 웹 애플리케이션
 
+**🔗 라이브 데모: [budget-tracker-django-production-54d7.up.railway.app](https://budget-tracker-django-production-54d7.up.railway.app)**  
+데모 계정: `demo` / `demo1234`
+
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-6.0-092E20?style=flat&logo=django&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?style=flat&logo=scikit-learn&logoColor=white)
@@ -102,6 +105,13 @@ python manage.py runserver
 
 접속: http://127.0.0.1:8000  
 데모 계정: `demo` / `demo1234`
+
+---
+
+## 배포
+
+Railway를 통해 배포되어 있습니다.  
+🔗 [budget-tracker-django-production-54d7.up.railway.app](https://budget-tracker-django-production-54d7.up.railway.app)
 
 ---
 
