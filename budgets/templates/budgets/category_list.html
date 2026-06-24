@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카테고리 관리 - Smart Budget Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            width: min(920px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .actions,
+        .row-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button,
+        .text-link {
+            display: inline-block;
+            border-radius: 6px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .button {
+            padding: 10px 14px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .button.secondary,
+        .text-link {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+        }
+
+        .text-link {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .text-link.disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .card {
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #6b7280;
+            font-weight: 700;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #3730a3;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .empty {
+            padding: 36px 20px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        @media (max-width: 760px) {
+            .header {
+                display: block;
+            }
+
+            .actions {
+                margin-top: 16px;
+            }
+
+            .card {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 640px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="header">
+            <div>
+                <h1>카테고리 관리</h1>
+                <div class="muted">거래 기록에서 사용할 카테고리를 관리합니다.</div>
+            </div>
+            <div class="actions">
+                <a class="button secondary" href="{% url 'budgets:transaction_list' %}">거래 기록</a>
+                <a class="button" href="{% url 'budgets:category_create' %}">카테고리 등록</a>
+            </div>
+        </header>
+
+        <section class="card">
+            {% if category_rows %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>유형</th>
+                            <th>구분</th>
+                            <th>합계</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in category_rows %}
+                            <tr>
+                                <td>{{ row.category.name }}</td>
+                                <td>{{ row.category.get_type_display }}</td>
+                                <td>
+                                    {% if row.category.user %}
+                                        <span class="badge">사용자 지정</span>
+                                    {% else %}
+                                        <span class="badge">기본</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.total %}
+                                        {{ row.total }}원
+                                    {% else %}
+                                        <span class="muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a class="text-link" href="{% url 'budgets:category_detail' row.category.pk %}">내역</a>
+                                        {% if row.category.user %}
+                                            <a class="text-link" href="{% url 'budgets:category_update' row.category.pk %}">수정</a>
+                                        {% else %}
+                                            <span class="text-link disabled">수정 불가</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty">등록된 카테고리가 없습니다.</div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - Smart Budget Tracker</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .wrap {
+            width: min(420px, calc(100% - 32px));
+            padding: 24px 0;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .title h1 {
+            margin: 0 0 6px;
+            font-size: 26px;
+        }
+
+        .title p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .field { margin-bottom: 18px; }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+            color: #111827;
+            background: #fff;
+            transition: border-color 0.15s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* 에러가 있는 필드 강조 */
+        .field-error input {
+            border-color: #ef4444;
+        }
+
+        .help-text {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .error-list {
+            margin: 4px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .error-list li {
+            font-size: 13px;
+            color: #b91c1c;
+            margin-top: 4px;
+        }
+
+        .form-errors {
+            margin-bottom: 16px;
+            padding: 12px;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            background: #fef2f2;
+            font-size: 14px;
+            color: #b91c1c;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 24px;
+            border: 0;
+            border-radius: 6px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn:hover { background: #1d4ed8; }
+
+        .footer {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .footer a {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="title">
+            <h1>Smart Budget Tracker</h1>
+            <p>계정을 만들어 예산 관리를 시작하세요.</p>
+        </div>
+
+        <div class="card">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-errors">
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="field {% if field.errors %}field-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <ul class="error-list">
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="help-text">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button class="btn" type="submit">회원가입</button>
+            </form>
+        </div>
+
+        <div class="footer">
+            이미 계정이 있으신가요? <a href="{% url 'login' %}">로그인</a>
+        </div>
+    </div>
+</body>
+</html>

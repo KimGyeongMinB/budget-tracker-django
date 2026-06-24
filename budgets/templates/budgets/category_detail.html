@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category.name }} 내역 - Smart Budget Tracker</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            width: min(920px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        h1 { margin: 0 0 8px; font-size: 32px; }
+
+        .muted { color: #6b7280; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #3730a3;
+            font-size: 13px;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .summary-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 18px 24px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+            flex: 1;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .summary-value {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .income  { color: #047857; }
+        .expense { color: #b91c1c; }
+
+        .card {
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #6b7280;
+            font-weight: 700;
+        }
+
+        tr:last-child td { border-bottom: 0; }
+
+        .empty {
+            padding: 36px 20px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            .header { display: block; }
+            .summary-bar { flex-direction: column; }
+            .card { overflow-x: auto; }
+            table { min-width: 560px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="header">
+            <div>
+                <h1>
+                    {{ category.name }}
+                    <span class="badge">{{ category.get_type_display }}</span>
+                </h1>
+                <div class="muted">
+                    {% if category.user %}사용자 지정 카테고리{% else %}기본 카테고리{% endif %}
+                </div>
+            </div>
+            <a class="button" href="{% url 'budgets:category_list' %}">← 카테고리 목록</a>
+        </header>
+
+        <!-- 합계 요약 -->
+        <div class="summary-bar">
+            <div class="summary-card">
+                <div class="summary-label">총 거래 건수</div>
+                <div class="summary-value">{{ records|length }}건</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">합계 금액</div>
+                <div class="summary-value {% if category.type == 'income' %}income{% else %}expense{% endif %}">
+                    {{ total }}원
+                </div>
+            </div>
+        </div>
+
+        <!-- 거래 내역 테이블 -->
+        <section class="card">
+            {% if records %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>내용</th>
+                            <th>금액</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td>{{ record.transaction_date }}</td>
+                                <td>{{ record.description|default:"-" }}</td>
+                                <td>{{ record.amount }}원</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty">이 카테고리에 등록된 거래 내역이 없습니다.</div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

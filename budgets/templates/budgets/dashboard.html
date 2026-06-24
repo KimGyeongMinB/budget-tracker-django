@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Budget Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 9px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button.primary {
+            border-color: #2563eb;
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .label {
+            margin-bottom: 10px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .income {
+            color: #047857;
+        }
+
+        .expense {
+            color: #b91c1c;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .empty {
+            padding: 16px 0;
+            color: #6b7280;
+        }
+
+        @media (max-width: 860px) {
+            .summary-grid,
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                display: block;
+            }
+
+            .user-menu {
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="header">
+            <div>
+                <h1>Smart Budget Tracker</h1>
+                <div class="muted">{{ current_year }}년 {{ current_month }}월 대시보드</div>
+            </div>
+
+            <div class="user-menu">
+                {% if request.user.is_authenticated %}
+                    <span class="muted">{{ request.user.username }}님</span>
+                    <a class="button" href="{% url 'budgets:transaction_list' %}">거래 기록</a>
+                    <form class="logout-form" method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="button" type="submit">로그아웃</button>
+                    </form>
+                {% else %}
+                    <a class="button primary" href="{% url 'login' %}">로그인</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <section class="summary-grid">
+            <div class="card">
+                <div class="label">이번 달 수입</div>
+                <div class="value income">{{ total_income }}원</div>
+            </div>
+            <div class="card">
+                <div class="label">이번 달 지출</div>
+                <div class="value expense">{{ total_expense }}원</div>
+            </div>
+            <div class="card">
+                <div class="label">잔액</div>
+                <div class="value">{{ balance }}원</div>
+            </div>
+            <div class="card">
+                <div class="label">예산 사용률</div>
+                <div class="value">{{ budget_usage_rate }}%</div>
+            </div>
+        </section>
+
+        <section class="content-grid">
+            <div class="card">
+                <h2>예산 현황 <span class="muted" style="font-size:13px; font-weight:400;">(이번 달 수입 기준)</span></h2>
+                {% if budget_amount > 0 %}
+                    <p>이번 달 예산: <strong>{{ budget_amount }}원</strong></p>
+                    {% if is_over_budget %}
+                        <p style="color:#b91c1c; font-weight:700;">⚠️ 예산 초과: {{ remaining_budget }}원</p>
+                    {% else %}
+                        <p>남은 예산: <strong>{{ remaining_budget }}원</strong></p>
+                    {% endif %}
+                    <p>사용률: <strong>{{ budget_usage_rate }}%</strong></p>
+                {% else %}
+                    <p class="muted">이번 달 수입 내역이 없어 예산을 계산할 수 없습니다.</p>
+                {% endif %}
+
+                <hr style="border:none; border-top:1px solid #e5e7eb; margin: 14px 0;">
+                {% if next_prediction %}
+                    <p style="font-size:13px; color:#6b7280; margin:0 0 4px;">다음 달 예상 지출 (ML 예측)</p>
+                    <p style="font-size:20px; font-weight:700; color:#2563eb; margin:0 0 8px;">
+                        {{ next_prediction.predicted_amount }}원
+                    </p>
+                {% else %}
+                    <p class="muted" style="font-size:13px;">다음 달 지출 예측이 아직 없습니다.</p>
+                {% endif %}
+                <form method="post" action="{% url 'budgets:run_prediction' %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="button" style="font-size:13px; padding:7px 12px; border:0; cursor:pointer;">
+                        예측 실행
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>카테고리별 지출 비중</h2>
+                {% if category_expenses %}
+                    <canvas id="pieChart" height="220"></canvas>
+                {% else %}
+                    <p class="empty">이번 달 지출 기록이 없습니다.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="card" style="margin-top: 16px;">
+            <h2>월별 지출 변화</h2>
+            {% if bar_values != "[]" %}
+                <canvas id="barChart" height="100"></canvas>
+            {% else %}
+                <p class="empty">지출 기록이 없습니다.</p>
+            {% endif %}
+        </section>
+
+        <section class="card" style="margin-top: 16px;">
+            <h2>최근 거래 기록</h2>
+            {% if recent_records %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>유형</th>
+                            <th>카테고리</th>
+                            <th>내용</th>
+                            <th>금액</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in recent_records %}
+                            <tr>
+                                <td>{{ record.transaction_date }}</td>
+                                <td>{{ record.get_type_display }}</td>
+                                <td>{{ record.category.name }}</td>
+                                <td>{{ record.description }}</td>
+                                <td>{{ record.amount }}원</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty">거래 기록이 없습니다.</p>
+            {% endif %}
+        </section>
+    </main>
+    <script>
+        // 파이 차트 - 카테고리별 지출 비중
+        const pieCtx = document.getElementById('pieChart');
+        if (pieCtx) {
+            new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ pie_labels|safe }},
+                    datasets: [{
+                        data: {{ pie_values|safe }},
+                        backgroundColor: [
+                            '#3b82f6','#ef4444','#10b981','#f59e0b',
+                            '#8b5cf6','#ec4899','#14b8a6','#f97316',
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toLocaleString()}원`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 막대 차트 - 월별 지출 변화
+        const barCtx = document.getElementById('barChart');
+        if (barCtx) {
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ bar_labels|safe }},
+                    datasets: [{
+                        label: '월별 지출',
+                        data: {{ bar_values|safe }},
+                        backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                        borderColor: '#2563eb',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (v) => v.toLocaleString() + '원'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

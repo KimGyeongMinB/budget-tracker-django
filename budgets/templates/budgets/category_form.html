@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카테고리 입력 - Smart Budget Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            width: min(640px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .muted {
+            margin-bottom: 24px;
+            color: #6b7280;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #111827;
+            font-size: 15px;
+        }
+
+        .error {
+            margin-top: 6px;
+            color: #b91c1c;
+            font-size: 13px;
+        }
+
+        .form-errors {
+            margin-bottom: 18px;
+            padding: 12px;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            background: #fef2f2;
+            color: #b91c1c;
+            font-size: 14px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 11px 16px;
+            border: 0;
+            border-radius: 6px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button.secondary {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+        }
+
+        @media (max-width: 640px) {
+            .actions {
+                flex-direction: column-reverse;
+            }
+
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <h1>{{ title|default:"카테고리 입력" }}</h1>
+        <div class="muted">거래 기록에서 사용할 나만의 카테고리를 관리합니다.</div>
+
+        <section class="card">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="actions">
+                    <a class="button secondary" href="{% url 'budgets:category_list' %}">취소</a>
+                    <button class="button" type="submit">{{ button_text|default:"저장" }}</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
