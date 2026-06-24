@@ -9,6 +9,8 @@
 ![Django](https://img.shields.io/badge/Django-6.0-092E20?style=flat&logo=django&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?style=flat&logo=scikit-learn&logoColor=white)
 
+**📄 포트폴리오 기획서: [portfolio-plan.pdf](docs/portfolio-plan.pdf)**
+
 ---
 
 ## 소개
