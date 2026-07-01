@@ -1,3 +1,4 @@
+from collections import Counter
 from decimal import Decimal
 
 import numpy as np
@@ -21,7 +22,7 @@ from .models import (
 _pipeline_cache: dict = {}
 
 
-def _build_pipeline() -> Pipeline:
+def _build_pipeline(cv=2) -> Pipeline:
     """TF-IDF + LinearSVC 파이프라인 생성."""
     return Pipeline([
         ("tfidf", TfidfVectorizer(
@@ -32,7 +33,7 @@ def _build_pipeline() -> Pipeline:
         )),
         ("clf", CalibratedClassifierCV(
             LinearSVC(max_iter=2000, C=1.0, class_weight="balanced"),
-            cv=3,
+            cv=cv,
         )),
     ])
 
@@ -59,7 +60,13 @@ def get_category_recommendation(description: str, user) -> dict:
         label_ids = [d.category.id for d in training_data]
         category_map = {d.category.id: d.category for d in training_data}
 
-        pipeline = _build_pipeline()
+        # 카테고리당 최소 샘플 수에 맞게 cv 동적 설정
+        min_samples = min(Counter(label_ids).values())
+        if min_samples < 2:
+            return {"success": False, "message": "카테고리당 학습 데이터가 부족합니다."}
+        cv = min(2, min_samples)
+
+        pipeline = _build_pipeline(cv=cv)
         pipeline.fit(texts, label_ids)
 
         # cross-validation 정확도 측정

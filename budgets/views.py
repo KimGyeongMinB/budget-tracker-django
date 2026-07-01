@@ -14,7 +14,6 @@ from django.views.decorators.http import require_POST
 from .forms import TransactionRecordForm, CategoryForm, BudgetForm, SignUpForm
 from .models import Budget, ExpensePrediction, MLCategoryTrainingData, TransactionRecord, TransactionType, Category
 
-
 def _save_training_data(user, description: str, category):
     """거래 설명 + 카테고리를 ML 학습 데이터에 자동 저장."""
     description = description.strip()
